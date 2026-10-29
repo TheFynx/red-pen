@@ -1,0 +1,70 @@
+amends "package://github.com/jdx/hk/releases/download/v1.43.0/hk@1.43.0#/Config.pkl"
+
+import "package://github.com/jdx/hk/releases/download/v1.43.0/hk@1.43.0#/Builtins.pkl" as builtins
+
+// Linters. Pre-commit runs the fix path where a fix exists; check blocks a
+// commit on the rest.
+local linters = new Mapping<String, Step> {
+  ["go-fmt"] = builtins.go_fmt
+  ["go-vet"] = builtins.go_vet
+  ["golangci-lint"] {
+    glob = List("*.go")
+    check = "golangci-lint run"
+    fix = "golangci-lint run --fix"
+    exclusive = true
+  }
+
+  // The repo eats its own food. The script builds the linter and runs it over
+  // every Markdown doc except the intentional-slop examples/before-* files.
+  ["docs-lint"] {
+    check = "./scripts/self-lint.sh"
+    exclusive = true
+  }
+}
+
+// Security gates. The linter is pure stdlib with no dependencies: gosec still
+// guards the Go code, and govulncheck guards the stdlib surface it touches.
+local security = new Mapping<String, Step> {
+  ["govulncheck"] {
+    check = "govulncheck ./..."
+    exclusive = true
+  }
+  ["gosec"] {
+    check = "gosec -quiet -fmt=text ./..."
+    exclusive = true
+  }
+}
+
+// -race matches the CI matrix: the hook a contributor runs before every push
+// must not gate less than CI.
+local tests = new Mapping<String, Step> {
+  ["go-test"] {
+    check = "go test -race ./..."
+    exclusive = true
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+
+  ["pre-push"] {
+    steps = (tests) {
+      ["govulncheck"] = security["govulncheck"]
+      ["gosec"] = security["gosec"]
+    }
+  }
+
+  // Full sweep: `hk run check`.
+  ["check"] {
+    fix = true
+    steps = (linters) {
+      ["govulncheck"] = security["govulncheck"]
+      ["gosec"] = security["gosec"]
+      ["go-test"] = tests["go-test"]
+    }
+  }
+}

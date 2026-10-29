@@ -1,0 +1,51 @@
+[settings]
+experimental = true
+
+[tools]
+# Pinned like the house lint gate: CI runs golangci-lint v2.14.0, so local hooks
+# run the same version and no fix passes one side and fails the other.
+go = "1.27.1"
+golangci-lint = "2.14.0"
+# Security gate tools are pinned to the CI versions for the same reason.
+"go:golang.org/x/vuln/cmd/govulncheck" = "v1.8.0"
+"go:github.com/securego/gosec/v2/cmd/gosec" = "v2.29.0"
+gotestsum = "latest"
+goreleaser = "latest"
+hk = "latest"
+pkl = "latest"
+
+[env]
+HK_MISE = "1"
+
+[hooks]
+postinstall = """
+# Register the git hooks (pre-commit, pre-push, check) defined in hk.pkl.
+hk install --mise || true
+
+# Pre-stage the module cache so a clone is build-ready after `mise install`.
+go mod download || true
+"""
+
+[tasks]
+build = "go build ./cmd/red-pen-lint"
+test = "gotestsum --format pkgname -- ./..."
+"test:raw" = "go test -v ./..."
+lint = "golangci-lint run"
+format = "go fmt ./..."
+fmt = { depends = ["format"] }
+
+security = "govulncheck ./..."
+
+[tasks."docs:check"]
+description = "Self-lint every Markdown doc with the red-pen linter"
+run = "./scripts/self-lint.sh"
+
+[tasks.release]
+description = "Snapshot-build every release target locally (no publish, no signing)"
+run = "goreleaser build --snapshot --clean"
+
+# Full snapshot with cosign and SBOMs lives in CI as the release-snapshot job:
+# keyless signing needs GitHub's OIDC token, which no local machine can hold.
+[tasks.ci]
+description = "Run every local gate: tests, Go lint, security, docs"
+depends = ["test", "lint", "security", "docs:check"]

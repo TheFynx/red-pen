@@ -1,0 +1,34 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    staticcheck:
+      checks: ["all", "-ST1003"]
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+# One copy of the rules. Local hooks (hk.pkl), mise run lint, and the CI lint
+# job all read this file, so no side of the gate can drift from the other.
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

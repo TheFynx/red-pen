@@ -1,0 +1,112 @@
+# .goreleaser.yaml
+
+version: 2
+
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod tidy
+
+gomod:
+  proxy: true
+
+git:
+  ignore_tags: []
+
+report_sizes: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+builds:
+  - id: red-pen-lint
+    main: ./cmd/red-pen-lint
+    binary: red-pen-lint
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }}
+
+checksum:
+  name_template: "checksums.txt"
+
+# SPDX SBOM per archive, so what went into a build stays inspectable without
+# rebuilding it. The workflows install syft.
+sboms:
+  - artifacts: archive
+
+# Keyless cosign signature over checksums.txt. The installers point at the
+# checksums file, but that file comes from the same release it protects, so the
+# signature carries the authenticity for every artifact it lists. Keyless binds
+# the signature to this repo's GitHub Actions OIDC identity. Verify with:
+#
+#   cosign verify-blob checksums.txt \
+#     --bundle checksums.txt.sigstore.json \
+#     --certificate-identity-regexp '^https://github\.com/TheFynx/red-pen/' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    args:
+      - sign-blob
+      - --bundle=${signature}
+      - ${artifact}
+      - --yes
+    artifacts: checksum
+    output: true
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^test:"
+      - "^test\\("
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Bug fixes"
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 300
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\(.+\))??!?:.+$
+      order: 350
+    - title: Other work
+      order: 9999
+
+archives:
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end -}}
+    formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+
+release:
+  name_template: "v{{ .Version }}"
+  prerelease: auto
+  footer: |
+    **Full Changelog**: https://github.com/TheFynx/red-pen/compare/{{ .PreviousTag }}...{{ .Tag }}

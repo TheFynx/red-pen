@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # The linter is installed and run on all three desktop platforms, so build and
+  # test all three. The test suite is pure-Go string and file work, and it gates
+  # everywhere: no platform gets an advisory pass.
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing still tells you about the other two.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          # Matches the toolchain the release builds with, so no user platform
+          # ever compiles with a toolchain CI has never tested.
+          go-version: ">=1.26.6"
+
+      - name: Build
+        run: go build -v ./...
+
+      # vet type-checks the test files too, so this is also the guarantee that
+      # the whole tree, tests included, compiles for this platform.
+      - name: Vet
+        run: go vet ./...
+
+      # -race matches the pre-push hook in hk.pkl: contributors gate on this
+      # before push, so CI gates on it too.
+      - name: Test
+        run: go test -race ./...
+
+  # The release ships a cross-compiled target matrix (.goreleaser.yaml) that CI
+  # would otherwise never compile. A target-specific break then surfaces only on
+  # release day. goreleaser build compiles the matrix itself, so this job cannot
+  # drift from the release config. CGO stays off; every target cross-compiles
+  # from one runner.
+  cross-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # goreleaser reads git history. A shallow clone breaks its version math.
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: ">=1.26.6"
+
+      - name: Build every release target
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: build --snapshot --clean
+
+  # cross-compile only exercises `goreleaser build`. The signs:/sboms: blocks in
+  # .goreleaser.yaml otherwise run for the first time inside a real tag push, so
+  # this job runs the full release pipeline as a snapshot before merge. Keyless
+  # cosign needs an OIDC token, which fork PRs cannot get; those run the
+  # cross-compile job only.
+  release-snapshot:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: ">=1.26.6"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: "v3.1.3"
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0
+
+      - name: Release snapshot (no publish)
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The repo eats its own food: every Markdown doc in the tree must pass the
+  # linter this repo ships. The same check runs in the pre-commit hook.
+  docs-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: ">=1.26.6"
+
+      - name: Self-lint the docs
+        run: ./scripts/self-lint.sh
+
+      # shellcheck is preinstalled on the ubuntu runners. Analyse, not execute:
+      # the script gets the same review, and the gate catches a regression.
+      - name: shellcheck self-lint.sh
+        run: shellcheck scripts/self-lint.sh
+
+  # Pinned to the same version the mise.toml and the hk hook run locally.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: ">=1.26.6"
+
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.14.0
+
+  # Mirrors the security gates in the pre-push hook.
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: ">=1.26.6"
+
+      - name: gosec
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
+          gosec ./...
+
+      # Fails on any known vulnerability reachable from our code paths.
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+          govulncheck ./...
