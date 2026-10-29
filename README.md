@@ -119,7 +119,7 @@ Local tooling uses mise and hk, the same as the maintainer's other Go projects.
 
 CI runs the same gates on every push and pull request. It adds a docs gate that self-lints every Markdown file, a snapshot build of every release target, and a full snapshot of the release pipeline. Pushing a `v*` tag cuts the release through goreleaser: archives per platform, a checksums file, keyless cosign signatures, and SPDX SBOMs.
 
-Keep the local hooks and CI equal in strength. If one adds a gate, add it to both.
+Keep the local hooks and CI equal in strength. If one adds a gate, add it to both. One quirk: hk's pre-push hook cannot diff a tag push against the remote. Cut releases with `git push --no-verify origin <tag>`. The tag triggers the release workflow, which is the gate that matters for a release.
 
 ## Before and after
 
