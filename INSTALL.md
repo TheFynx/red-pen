@@ -124,7 +124,7 @@ go install github.com/TheFynx/red-pen/cmd/red-pen-lint@latest
 red-pen-lint README.md docs/*.md
 ```
 
-Exit 1 means violations to fix. Word-swap suggestions print as findings and do not fail the run. See [Automated lint](SKILL.md#automated-lint) in `SKILL.md` for the full behavior.
+Exit 1 means mechanical violations to fix. Word-swap suggestions print as findings and do not fail the run. The linter is a quick sweep, not the verdict: after fixing violations, run the self-check in `SKILL.md`. See [Lint check](SKILL.md#lint-check) for the full behavior.
 
 ## Update and remove
 

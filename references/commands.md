@@ -148,7 +148,7 @@ Use the `pdf` skill for PDF generation and the `docx` skill for Word output.
 
 1. Detect source type and read the content.
 2. For repo files: glob for matching files.
-3. Run the linter on the text. See [Automated lint](../SKILL.md#automated-lint) for how to run it and what to do when Go is missing.
+3. Run the linter on the text. See [Lint check](../SKILL.md#lint-check). The lint is a quick sweep only. Always finish with the self-check before delivering.
 4. Generate side-by-side comparison (default) or apply rewrites (`--fix`).
 5. For `--fix` on repo files: stage changed files with `git add <file>`.
 6. For `--fix` on platform docs: get approval, then push changes back via connector. See [Platform writes](#platform-writes).

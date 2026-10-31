@@ -31,5 +31,5 @@ Skip the question if the user already said which one they want. If working unatt
 
 Edit mode rules still apply in both voices. Do not delete sections, links, or projects without approval.
 
-To lint personal writing in this voice, run the linter with `--voice personal`. See [Automated lint](../SKILL.md#automated-lint).
+To lint personal writing in this voice, run the linter with `--voice personal`. See [Lint check](../SKILL.md#lint-check).
 

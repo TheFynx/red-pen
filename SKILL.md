@@ -158,28 +158,28 @@ Before editing existing comments, read the "Never touch these comments" table in
 - One blank line between sections. No decorative whitespace.
 - No horizontal rules unless separating fundamentally different content on the same page.
 
-## Automated lint
+## Lint check
 
-Run the linter against the output before delivering it. Use the first option that works:
+The linter is a quick sweep, not the verdict. It catches the mechanical patterns fast, so you do not have to eyeball them. It does not judge the writing. Delivering clean prose is still your job. Use the first option that works:
 
 1. If `red-pen-lint` is on the PATH, run `red-pen-lint <file>`.
 2. If Go is installed, run `go run github.com/TheFynx/red-pen/cmd/red-pen-lint@latest <file>`. The first run needs network access to download the module.
 3. From a clone of this repo, run `go run ./cmd/red-pen-lint <file>`. This works offline.
 
-If none of these work, do not skip the lint silently. Run the [self-check](#self-check-before-delivery) by hand. Tell the user that the linter did not run and why, for example "Go is not installed" or "no network access." Give them the install command: `go install github.com/TheFynx/red-pen/cmd/red-pen-lint@latest`.
+If none of these work, that is fine. Do not skip the self-check. Run the [self-check](#self-check-before-delivery) by hand. Tell the user the linter did not run, and why. Example: "Go is not installed." Give them the install command: `go install github.com/TheFynx/red-pen/cmd/red-pen-lint@latest`.
 
 The linter reads files. To lint a platform doc or a draft, write it to a temporary `.md` file first.
 
-The linter reports two severities. Violations must be fixed before delivery. Findings are suggestions, and the linter does not fail on them.
+It reports two severities:
 
-Violations:
+**Violations** are mechanical pattern hits:
 
 - Punctuation: em dashes, ` -- ` and unspaced `--` typed as a dash, en dashes used as a dash, and semicolons. En dashes in number ranges such as "1–5" pass.
 - Words: banned modals, minimizing words, cheerleading, AI slop vocabulary, and promotional words.
 - Phrases: formulaic transitions and compulsive summaries.
 - Style: bolded-term-colon-definition patterns (colon inside the bold or right after it), contractions, and sentence length. The pattern check skips notice blockquotes and list labels in bold. A bold label that ends in a period is fine, as in "**Write mode (default).**".
 
-Findings (verbose words and phrases from `references/word-swaps.md`):
+**Findings** are word-swap candidates from `references/word-swaps.md`:
 
 - A finding names the word and the line. It is a suggestion, not a defect. Do not treat it as a ban.
 - Apply the swap when the simpler word carries the same meaning.
@@ -190,7 +190,15 @@ Sentence length uses 20 words for numbered list items, because those are steps. 
 
 It skips YAML frontmatter, fenced code blocks (backticks or tildes), indented code blocks, inline code, HTML blocks, HTML tags, and HTML comments.
 
-Exit code 0 means no violations. Findings print in their own section, repeat the ignore directives, and leave the exit code at 0. Exit code 1 means violations found. Fix every violation before delivering.
+Exit code 0 means no mechanical violations. Exit code 1 means violations. Neither means the writing is good or bad. Fix the violations, decide each finding, then run the self-check. The self-check is the delivery gate.
+
+**What the linter cannot see.** Do not rely on it alone. It cannot catch:
+
+- Whether a sentence is true, specific, or in the right place.
+- Rule-of-three stacks, negative parallelisms, false ranges, hedging, and vague attribution. These are rules here, but regexes cannot judge them.
+- Whether a step names the real command, file, or value. It only counts words.
+- Tone, structure, and reader fit: is this page for a beginner or an expert, and does it say the right thing first.
+- Anything inside code blocks, inline code, HTML, frontmatter, or ignored regions. That content is skipped on purpose, not judged.
 
 For personal writing in "Keep my voice" mode, add `--voice personal`. This skips the contraction, modal, minimizing-word, semicolon, em-dash, and sentence-length checks. All other checks still run.
 
@@ -215,7 +223,7 @@ Use these only when the text cannot change, or when the hit is a false positive.
 
 ## Self-check before delivery
 
-Run the automated lint first. Then run this manual check on every piece of writing before delivering it.
+This is the delivery gate. Run the lint check first if you can. Then run this on every piece of writing before delivering it. A clean lint run does not replace this. The linter only sees mechanical patterns. This list is where the actual quality decisions happen.
 
 1. Find your three longest sentences. Are any over 20 words (procedural) or 25 words (descriptive)? Split them.
 2. Search for em dashes. Remove all of them.

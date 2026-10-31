@@ -25,7 +25,7 @@ A reusable writing skill for AI assistants (Claude, Cursor, Copilot) and a refer
 | Diagrams | Mermaid rules, platform support, declaration order, type guidance |
 | Formatting | Headings, lists, tables, whitespace |
 | Templates | README, How-To, Reference/API, Checklist/Procedure, Changelog |
-| Automated lint | Go linter that checks files against red-pen rules |
+| Lint check | Go linter sweep, plus the manual self-check as the delivery gate |
 | Self-check | 14-item checklist to run before delivery |
 
 ## Use as a Claude skill
