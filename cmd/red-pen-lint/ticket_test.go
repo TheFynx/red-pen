@@ -7,7 +7,7 @@ import (
 )
 
 func lintTicketString(input, mode string) []string {
-	return hits(lintTicket(strings.Split(input, "\n"), mode))
+	return hits(lintTicket(strings.Split(input, "\n"), mode, defaultTicketConfig))
 }
 
 func TestLintTicket(t *testing.T) {

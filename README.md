@@ -26,6 +26,7 @@ A reusable writing skill for AI assistants (Claude, Cursor, Copilot) and a refer
 | Formatting | Headings, lists, tables, whitespace |
 | Templates | README, How-To, Reference/API, Checklist/Procedure, Changelog |
 | Tickets | Story, bug, task, spike, true and bucket epics, acceptance criteria, ticket lint |
+| Onboard | `/red-pen onboard` records the tracker, ticket style, and lint defaults |
 | Lint check | Go linter sweep, plus the manual self-check as the delivery gate |
 | Self-check | 14-item checklist to run before delivery |
 
@@ -78,7 +79,7 @@ Findings do not fail the run:
 
 It skips YAML frontmatter, fenced and indented code blocks, inline code, and HTML.
 
-For a ticket, it also checks required sections per type, title length, empty sections, leftover placeholders, and vague acceptance criteria. These checks run when the file covers three sections of one ticket type. To force them, pass `--ticket` or `--ticket=story|bug|task|spike|epic`:
+For a ticket, it also checks required sections per type, title length, empty sections, leftover placeholders, and vague acceptance criteria. These checks run when the file covers three sections of one ticket type. To force them, pass `--ticket` or `--ticket=story|bug|task|spike|epic`. Team defaults, such as `ticket-detect: off`, custom section lists, and a title cap, live in `.red-pen.yml`. An example with every key sits in `examples/red-pen.example.yml`:
 
 ```bash
 red-pen-lint --ticket=bug ticket.md

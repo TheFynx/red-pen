@@ -357,7 +357,11 @@ func lintFile(path, ticketMode string) ([]violation, error) {
 	if err != nil {
 		return nil, err
 	}
-	vs := append(lintLines(lines), lintTicket(lines, ticketMode)...)
+	cfg, err := configFor(path)
+	if err != nil {
+		return nil, err
+	}
+	vs := append(lintLines(lines), lintTicket(lines, ticketMode, cfg)...)
 	for i := range vs {
 		vs[i].Path = path
 	}

@@ -1,0 +1,26 @@
+# .red-pen.yml: the team defaults for red-pen in this repo.
+#
+# Copy this file to the repo root and name it .red-pen.yml. The linter reads
+# the nearest file walking up from each document it checks. Command-line
+# flags win over this file.
+
+# Which tracker /red-pen reads and rewrites tickets through:
+# Jira, Linear, GitHub Issues, GitLab, Asana, Shortcut, Trello, or another
+# connected tracker. Agent-facing; the linter ignores it.
+tracker: linear
+
+# Ticket checks in the linter: auto runs them when a document covers the
+# sections of one type. off keeps them out unless --ticket is passed.
+ticket-detect: auto
+
+# The most words a ticket title can carry. The built-in default is 10.
+max-title-words: 10
+
+# Custom heading lists. A list here replaces the built-in sections that type
+# needs, including the built-in aliases, so a ticket is checked against your
+# exact headings. Leave a key out to keep the built-in template.
+story-sections: Problem, Outcome, Acceptance criteria
+bug-sections: Steps to reproduce, Expected, Actual, Environment
+task-sections: What, Why, Done when
+spike-sections: Question, Timebox, Deliverable, Done when
+# epic-sections: Problem, Outcome, End state, Stories

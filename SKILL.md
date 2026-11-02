@@ -60,7 +60,7 @@ A ticket is for the person who does the work. It answers what changes, why, and 
 
 ## Commands
 
-`/red-pen` cleans docs or code comments. Sources include a repo, an attached file, a Notion, Confluence, or Google Docs page, and a tracker ticket. The default is a preview. Nothing is written until the user passes `--fix`. Platform pages also need an explicit yes before the push. The full command reference is in `references/commands.md`.
+`/red-pen` cleans docs or code comments. Sources include a repo, an attached file, a Notion, Confluence, or Google Docs page, and a tracker ticket. The default is a preview. Nothing is written until the user passes `--fix`. Platform pages also need an explicit yes before the push. `/red-pen onboard` records the team's defaults in `.red-pen.yml`, an AGENTS.md or CLAUDE.md section, or both. The full command reference is in `references/commands.md`.
 
 ## Sentence rules
 

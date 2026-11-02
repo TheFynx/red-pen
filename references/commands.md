@@ -119,6 +119,22 @@ When a Notion, Confluence, Google Docs, or ticket link is passed directly:
 
 For a ticket, rewrite the description with `references/tickets.md`. Keep the title, status, assignee, labels, and other tracker fields as they are. Propose moving reference material and history to a comment or a linked doc. Moving content is a structural change, so wait for the user's approval.
 
+## `/red-pen onboard`
+
+Set up red-pen in a repo by asking questions, then writing the answers down on request. Run this before the first `/red-pen` in a repo, or after the team changes its process.
+
+Ask at most five questions. Each has a default and can be skipped. A skipped question leaves no trace in any file:
+
+1. Which tracker: Jira, Linear, GitHub Issues, GitLab, Asana, Shortcut, Trello, or none.
+2. Story style for new tickets. The choices: Problem and Outcome, the "As a / I want / so that" sentence, or custom. With custom, ask for the headings every story needs, and note them as a `story-sections` list.
+3. Custom section lists for the other types. Ask only if the team wants them: "What headings does a bug, task, spike, or epic need?" Any type left alone keeps the built-in template.
+4. Which doc platforms are in use: Notion, Confluence, Google Docs, or none. This gates the connector advice.
+5. Ticket auto-detect in the linter, on or off. Off is the answer for repos that want ticket checks only behind `--ticket`.
+
+Then offer the output choice: a `.red-pen.yml` (the default), a `## Red pen` section appended to `AGENTS.md` or `CLAUDE.md`, or both. Show the exact content, wait for an explicit yes, and only then write. Do not overwrite an existing `.red-pen.yml` or Red pen section. Merge into it, or leave it and list the pending answers.
+
+The linter reads `.red-pen.yml`. Its keys and effects are in [tickets.md](tickets.md#repo-config). Complete examples: `examples/red-pen.example.yml` and `examples/agents-red-pen.example.md`.
+
 ## Platform writes
 
 A Notion, Confluence, or Google Docs page or a ticket is shared. Other people read it, and the platform does not stage changes the way git does. `--fix` on a platform doc does not write right away:

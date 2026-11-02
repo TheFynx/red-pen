@@ -222,7 +222,7 @@ Red-pen writes tickets for Jira, Linear, GitHub Issues, GitLab, Asana, Shortcut,
 
 To find the team's tracker, check in this order:
 
-1. A line in the project's `AGENTS.md` or `CLAUDE.md`, such as `red-pen tracker: linear`.
+1. A Red pen section in the project's `AGENTS.md` or `CLAUDE.md`. See [Onboard](commands.md#red-pen-onboard). Older setups use a `red-pen tracker:` line in the same files.
 2. A `.red-pen.yml` file in the repo root with a `tracker` key:
 
    ```yaml
@@ -253,5 +253,27 @@ Ticket checks:
 | `ticket-vague` | Finding | An acceptance criterion uses an untestable word such as "works" or "properly". |
 
 The linter accepts a bold-only line, such as `**Steps to Reproduce**`, as a heading. Tracker exports often use that form. An epic with a Purpose, Entry rule, or Review cadence heading is checked as a bucket epic.
+
+## Repo config
+
+The linter reads team defaults from `.red-pen.yml`. It uses the nearest file walking up from the linted document, and the nearest file replaces any file above it. Command-line flags win over the file: with `ticket-detect: off`, auto-detect is gone, and `--ticket` still runs the checks.
+
+```yaml
+tracker: linear
+ticket-detect: auto
+max-title-words: 10
+story-sections: Problem, Outcome, Acceptance criteria
+```
+
+| Key | Values | What the linter does |
+|-----|--------|----------------------|
+| `ticket-detect` | `auto`, `off` | `off` keeps the checks out of files that do not pass `--ticket`. |
+| `max-title-words` | A number, 1 or more | Replaces the 10 word title cap. |
+| `story-sections`, and the same key for `bug`, `task`, `spike`, `epic` | A comma list of heading names | Replaces the required sections for that type, using your exact headings. The built-in aliases stop applying there. |
+| `tracker` | A tracker name | Agent-facing. The linter ignores it. |
+
+A custom section list holds fewer sections than the built-in one, so auto-detect lowers its bar to the list length.
+
+The complete example, with every key commented, is in `examples/red-pen.example.yml`. The agent-facing answers go in an AGENTS.md or CLAUDE.md section. `examples/agents-red-pen.example.md` shows the block. To produce both by answering questions, run `/red-pen onboard`.
 
 To lint a ticket from a tracker, write it to a temporary `.md` file first.

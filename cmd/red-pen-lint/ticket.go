@@ -13,9 +13,11 @@ import (
 // Ticket titles are scanned in a list view, so they stay short.
 const maxTitleWords = 10
 
-// Auto-detect waits until this many of one type's sections are present. Two
-// matches are not enough: "Problem" and "Outcome" also appear in ordinary
-// design docs that are not tickets.
+// Auto-detect waits until this many of a type's sections are present. Two
+// built-in matches are not enough: "Problem" and "Outcome" also appear in
+// ordinary design docs that are not tickets. A custom section list may hold
+// fewer sections, and its own names are stronger signals, so the gate drops
+// to the list length.
 const minAutoSections = 3
 
 type section struct {
@@ -65,6 +67,21 @@ var bucketMarkers = []section{secPurpose, secEntryRule, secCadence}
 
 // detectType walks this list, so ties go to the earlier type.
 var typeOrder = []string{"bug", "spike", "epic", "story", "task"}
+
+// requiredFor returns the sections a ticket of this type must have. A custom
+// list from .red-pen.yml replaces the built-in list, including the bucket
+// epic handling.
+func requiredFor(ticketType string, hs []heading, cfg ticketConfig) []section {
+	if ss, ok := cfg.sections[ticketType]; ok {
+		return ss
+	}
+	if ticketType == "epic" {
+		if found, _ := present(bucketMarkers, hs); len(found) > 0 {
+			return bucketEpic
+		}
+	}
+	return ticketTypes[ticketType]
+}
 
 // Words that make an acceptance criterion untestable. A reviewer cannot pass
 // or fail "works correctly". These are findings: the word can be fine in context.
@@ -164,23 +181,13 @@ func present(sections []section, hs []heading) (found, missing []section) {
 	return found, missing
 }
 
-// requiredFor returns the sections a ticket of this type must have.
-func requiredFor(ticketType string, hs []heading) []section {
-	if ticketType == "epic" {
-		if found, _ := present(bucketMarkers, hs); len(found) > 0 {
-			return bucketEpic
-		}
-	}
-	return ticketTypes[ticketType]
-}
-
 // detectType picks the type whose required sections the file covers best.
 // It walks typeOrder, so ties go to the earlier type. It returns "" and a
 // covered count of 0 when no ticket heading matches.
-func detectType(hs []heading) (string, int) {
+func detectType(hs []heading, cfg ticketConfig) (string, int) {
 	best, bestScore := "", 0
 	for _, t := range typeOrder {
-		found, _ := present(requiredFor(t, hs), hs)
+		found, _ := present(requiredFor(t, hs, cfg), hs)
 		if len(found) > bestScore {
 			best, bestScore = t, len(found)
 		}
@@ -190,17 +197,29 @@ func detectType(hs []heading) (string, int) {
 
 // lintTicket runs the ticket checks. mode is "" for auto-detect, "any" for
 // --ticket with no type, or a type name.
-func lintTicket(lines []string, mode string) []violation {
+func lintTicket(lines []string, mode string, cfg ticketConfig) []violation {
 	text := prose(lines)
 	hs := headings(text)
 
 	ticketType, covered := mode, 0
 	if mode == "" || mode == "any" {
-		ticketType, covered = detectType(hs)
-		// Auto-detect stays out of ordinary docs. --ticket ("any") always runs.
-		if mode == "" && covered < minAutoSections {
+		if mode == "" && !cfg.autodetect {
 			return nil
 		}
+		ticketType, covered = detectType(hs, cfg)
+		gate := minAutoSections
+		if ss, ok := cfg.sections[ticketType]; ok && len(ss) < gate {
+			gate = len(ss)
+		}
+		// Auto-detect stays out of ordinary docs. --ticket ("any") always runs.
+		if mode == "" && covered < gate {
+			return nil
+		}
+	}
+
+	titleCap := cfg.maxTitleWords
+	if titleCap == 0 {
+		titleCap = maxTitleWords
 	}
 
 	var vs []violation
@@ -208,11 +227,11 @@ func lintTicket(lines []string, mode string) []violation {
 	for i, line := range text {
 		if m := atxHeading.FindStringSubmatch(strings.TrimSpace(line)); m != nil && len(m[1]) == 1 {
 			titleLine = i + 1
-			if wc := wordCount(strings.NewReplacer("*", "", "_", "").Replace(m[2])); wc > maxTitleWords {
+			if wc := wordCount(strings.NewReplacer("*", "", "_", "").Replace(m[2])); wc > titleCap {
 				vs = append(vs, violation{
 					Line:     titleLine,
 					Rule:     "ticket-title",
-					Message:  fmt.Sprintf("Ticket title has %d words (max %d). Name the change, not the background.", wc, maxTitleWords),
+					Message:  fmt.Sprintf("Ticket title has %d words (max %d). Name the change, not the background.", wc, titleCap),
 					Severity: "violation",
 				})
 			}
@@ -228,7 +247,7 @@ func lintTicket(lines []string, mode string) []violation {
 			Severity: "violation",
 		})
 	} else {
-		_, missing := present(requiredFor(ticketType, hs), hs)
+		_, missing := present(requiredFor(ticketType, hs, cfg), hs)
 		for _, s := range missing {
 			vs = append(vs, violation{
 				Line:     titleLine,
