@@ -94,12 +94,7 @@ Optional. What breaks if this goes wrong, and how to tell.
 Optional. Only for production or shared systems.
 ```
 
-Some teams require the "As a / I want / so that" form. Put it under a `## User story` heading, in place of Problem and Outcome:
-
-```markdown
-## User story
-As a support agent, I want to export filtered rows, so that I stop copying them by hand.
-```
+Write the story as Problem and Outcome. Do not write it as an "As a / I want / so that" sentence. That form packs the same facts into one clause a reviewer cannot check.
 
 ## Bug
 

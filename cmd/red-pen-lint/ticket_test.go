@@ -87,9 +87,10 @@ func TestLintTicket(t *testing.T) {
 			want:  []string{},
 		},
 		{
-			name:  "classic user story satisfies problem and outcome",
+			name:  "user-story sentence does not satisfy problem and outcome",
 			input: "# Export rows\n\n## User story\n\nAs a support agent, I want to export rows, so that I stop copying by hand.\n\n## Acceptance criteria\n\n- [ ] The Export button downloads a CSV.\n",
-			want:  []string{},
+			mode:  "story",
+			want:  []string{"1:ticket-section", "1:ticket-section"},
 		},
 		{
 			name:  "true epic needs an end state",
