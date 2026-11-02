@@ -252,7 +252,7 @@ Ticket checks:
 | `ticket-type` | Violation | `--ticket` was passed, and no heading shows the type. |
 | `ticket-vague` | Finding | An acceptance criterion uses an untestable word such as "works" or "properly". |
 
-The linter accepts a bold-only line, such as `**Steps to Reproduce**`, as a heading. Tracker exports often use that form. An epic with a Purpose, Entry rule, or Review cadence heading is checked as a bucket epic.
+The linter accepts a bold-only line, such as `**Steps to Reproduce**`, as a heading. Tracker exports often use that form. An epic with an Entry rule or Review cadence heading is checked as a bucket epic. `ticket-vague` follows the built-in criteria headings only. A custom section list from `.red-pen.yml` is checked for missing sections, not vague words.
 
 ## Repo config
 

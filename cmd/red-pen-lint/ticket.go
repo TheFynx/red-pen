@@ -61,9 +61,10 @@ var ticketTypes = map[string][]section{
 // A bucket epic holds ad hoc work with no finish line, so it has no end state.
 var bucketEpic = []section{secPurpose, secInScope, secOutScope, secEntryRule, secCadence}
 
-// Any of these headings marks an epic as a bucket. Scope headings do not: a
-// true epic can have a Scope section too.
-var bucketMarkers = []section{secPurpose, secEntryRule, secCadence}
+// Only a strong marker counts toward an epic looking like a bucket. "Purpose"
+// alone is not enough: design docs and RFCs carry a Purpose heading all the
+// time. Scope headings do not count either, for the same reason.
+var bucketMarkers = []section{secEntryRule, secCadence}
 
 // detectType walks this list, so ties go to the earlier type.
 var typeOrder = []string{"bug", "spike", "epic", "story", "task"}

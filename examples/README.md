@@ -52,6 +52,15 @@ The ticket "after" files also pass the ticket checks. The linter detects them as
 go run ./cmd/red-pen-lint after-ticket-bug.md after-ticket-story.md after-ticket-epic.md
 ```
 
+## Config examples
+
+Two starting points for a repo's red-pen setup, no questions needed:
+
+| File | What it is |
+|------|------------|
+| [red-pen.example.yml](red-pen.example.yml) | Every `.red-pen.yml` key, commented. Copy to the repo root as `.red-pen.yml`. |
+| [agents-red-pen.example.md](agents-red-pen.example.md) | The `## Red pen` block to paste into `AGENTS.md` or `CLAUDE.md`. |
+
 ## What to look for
 
 <!-- red-pen-ignore-start -->

@@ -92,6 +92,17 @@ func TestLintTicket(t *testing.T) {
 			want:  []string{},
 		},
 		{
+			name:  "purpose and scope alone do not make a design doc a bucket epic",
+			input: "# Design\n\n## Purpose\n\nWhy we built it.\n\n## Scope\n\nWhat this doc covers.\n\n## Outcome\n\nWhat it achieves.\n",
+			want:  []string{},
+		},
+		{
+			name:  "a bucket marker makes an epic detect as a bucket",
+			input: "# Platform upkeep\n\n## Purpose\n\nSmall fixes.\n\n## Review cadence\n\nMonthly.\n",
+			mode:  "epic",
+			want:  []string{"1:ticket-section", "1:ticket-section", "1:ticket-section"},
+		},
+		{
 			name:  "true epic needs an end state",
 			input: "# Billing v2\n\n## Problem\n\nInvoices are manual.\n\n## Outcome\n\nInvoices send on their own.\n\n## Stories\n\n- Generate invoices.\n",
 			want:  []string{"1:ticket-section"},

@@ -98,6 +98,8 @@ Load the red-pen skill with the skill tool (id red-pen), then apply it to this t
 
 Claude Code needs no command file. The skill registers `/red-pen` on its own.
 
+`/red-pen onboard` sets up a repo's team defaults without reading the reference files. See [Onboard](../references/commands.md#red-pen-onboard).
+
 ## Agents without skill support
 
 Any agent that reads repository files can follow the skill without a loader.
