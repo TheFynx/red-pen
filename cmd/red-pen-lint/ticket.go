@@ -24,8 +24,10 @@ type section struct {
 }
 
 var (
-	secProblem     = section{"Problem", []string{"problem", "problem statement", "summary"}}
-	secOutcome     = section{"Outcome", []string{"outcome", "outcomes", "desired outcome", "desired outcomes"}}
+	// "User story" holds the "As a / I want / so that" sentence, which states
+	// both the problem and the outcome.
+	secProblem     = section{"Problem", []string{"problem", "problem statement", "summary", "user story"}}
+	secOutcome     = section{"Outcome", []string{"outcome", "outcomes", "desired outcome", "desired outcomes", "user story"}}
 	secCriteria    = section{"Acceptance criteria", []string{"acceptance criteria", "acceptance and validation criteria", "acceptance criteria definition of done", "definition of done", "done when"}}
 	secSteps       = section{"Steps to reproduce", []string{"steps to reproduce", "reproduction steps", "repro steps"}}
 	secExpected    = section{"Expected", []string{"expected", "expected behavior", "expected behaviour", "expected result"}}
