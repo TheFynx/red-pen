@@ -29,11 +29,14 @@ Red-pen accepts any of these as input:
 | `--source confluence <page URL>` | Confluence | Read via Confluence connector |
 | `--source gdocs <doc URL>` | Google Docs | Read via Google Drive connector |
 | A Notion/Confluence/Google Docs link pasted directly | Auto-detect | Identify the platform from the URL, read via connector |
+| A ticket link: Jira, Linear, GitHub Issues, GitLab, Asana, Shortcut, Trello, or another tracker | Ticket | Identify the tracker from the URL, read via its connector, apply `references/tickets.md` |
 | An attached `.md`, `.txt`, `.adoc`, `.rst` file | Local file | Read the attachment |
 | An attached `.docx` file | Word document | Read via docx skill |
 | An attached `.pdf` file | PDF document | Read via pdf skill |
 
 If a connector is needed but not connected, tell the user which connector to add. Do not guess or skip.
+
+If the tracker is not clear from the link, find the team default. See [Trackers](tickets.md#trackers). If no default exists, ask the user.
 
 ## `/red-pen docs`
 
@@ -48,7 +51,7 @@ Exclude: `vendor/`, `node_modules/`, `.git/`, `CHANGELOG.md`, `LICENSE`, generat
 **With `--fix`.** Apply the rewrites.
 
 - Repo files: rewrite in place, stage with `git add`.
-- Platform docs (Notion, Confluence, Google Docs): show the preview, wait for the user to approve it, then push the cleaned version back. See [Platform writes](#platform-writes).
+- Platform docs (Notion, Confluence, Google Docs, tickets): show the preview, wait for the user to approve it, then push the cleaned version back. See [Platform writes](#platform-writes).
 - Attached files: generate and deliver the cleaned file.
 
 **With `--fix --commit`.** Repo files only. Same as `--fix`, then commit with message `red-pen: clean docs` and a body listing files changed.
@@ -108,15 +111,17 @@ Rules for these comments:
 
 ## `/red-pen <link>`
 
-When a Notion, Confluence, or Google Docs link is passed directly:
+When a Notion, Confluence, Google Docs, or ticket link is passed directly:
 
 1. Detect the platform from the URL.
 2. Read the document via the platform's connector.
 3. Generate a side-by-side comparison (default) or rewrite in place (`--fix`).
 
+For a ticket, rewrite the description with `references/tickets.md`. Keep the title, status, assignee, labels, and other tracker fields as they are. Propose moving reference material and history to a comment or a linked doc. Moving content is a structural change, so wait for the user's approval.
+
 ## Platform writes
 
-A Notion, Confluence, or Google Docs page is shared. Other people read it, and the platform does not stage changes the way git does. `--fix` on a platform doc does not write right away:
+A Notion, Confluence, or Google Docs page or a ticket is shared. Other people read it, and the platform does not stage changes the way git does. `--fix` on a platform doc does not write right away:
 
 1. Show the side-by-side preview.
 2. Name the page and say that the cleaned version replaces its current content.
@@ -137,6 +142,7 @@ The cleaned output matches the source format unless the user asks for something 
 | Google Doc | Google Doc (via connector) | PDF, Word, Markdown |
 | Notion page | Notion page (via connector) | PDF, Word, Markdown |
 | Confluence page | Confluence page (via connector) | PDF, Word, Markdown |
+| Ticket | Ticket description (via connector) | Markdown |
 | `.docx` file | `.docx` file | PDF, Markdown |
 | `.pdf` file | Markdown (PDF is read-only) | Word |
 

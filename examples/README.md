@@ -13,6 +13,9 @@ Each "before" file is the original. Each "after" file rewrites the same content 
 | Bootstrap process docs | [before-bootstrap.md](before-bootstrap.md) | [after-bootstrap.md](after-bootstrap.md) |
 | GitHub Action README | [before-github-action-readme.md](before-github-action-readme.md) | [after-github-action-readme.md](after-github-action-readme.md) |
 | eBook tool README | [before-ebook2audiobook-readme.md](before-ebook2audiobook-readme.md) | [after-ebook2audiobook-readme.md](after-ebook2audiobook-readme.md) |
+| Bug ticket | [before-ticket-bug.md](before-ticket-bug.md) | [after-ticket-bug.md](after-ticket-bug.md) |
+| Story ticket | [before-ticket-story.md](before-ticket-story.md) | [after-ticket-story.md](after-ticket-story.md) |
+| Bucket epic | [before-ticket-epic.md](before-ticket-epic.md) | [after-ticket-epic.md](after-ticket-epic.md) |
 
 ## Sources and licenses
 
@@ -25,6 +28,7 @@ The before files come from public docs or the maintainer's own writing. The afte
 | before/after-bootstrap.md | Maintainer's RWR project docs (unpublished) | Maintainer's own |
 | before/after-github-action-readme.md | [actions-template-sync](https://github.com/AndreasAugustin/actions-template-sync) | MIT |
 | before/after-ebook2audiobook-readme.md | [ebook2audiobook](https://github.com/DrewThomasson/ebook2audiobook) | Apache-2.0 |
+| before/after-ticket-*.md | Synthetic. The company, services, and numbers are made up. | Maintainer's own |
 
 ## Linting the examples
 
@@ -41,6 +45,12 @@ go run ./cmd/red-pen-lint --voice personal after-profile-readme.md
 ```
 
 Under the docs voice, that file reports its kept contractions, which is expected. See [personal voice](../references/personal-voice.md).
+
+The ticket "after" files also pass the ticket checks. The linter detects them as tickets from their headings:
+
+```bash
+go run ./cmd/red-pen-lint after-ticket-bug.md after-ticket-story.md after-ticket-epic.md
+```
 
 ## What to look for
 

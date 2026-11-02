@@ -16,6 +16,7 @@ go build -o "$dir/red-pen-lint" ./cmd/red-pen-lint
   SKILL.md README.md INSTALL.md AGENTS.md \
   references/*.md examples/README.md \
   examples/after-getting-started.md examples/after-bootstrap.md \
-  examples/after-github-action-readme.md examples/after-ebook2audiobook-readme.md
+  examples/after-github-action-readme.md examples/after-ebook2audiobook-readme.md \
+  examples/after-ticket-bug.md examples/after-ticket-story.md examples/after-ticket-epic.md
 
 "$dir/red-pen-lint" --voice personal examples/after-profile-readme.md

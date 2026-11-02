@@ -25,6 +25,7 @@ A reusable writing skill for AI assistants (Claude, Cursor, Copilot) and a refer
 | Diagrams | Mermaid rules, platform support, declaration order, type guidance |
 | Formatting | Headings, lists, tables, whitespace |
 | Templates | README, How-To, Reference/API, Checklist/Procedure, Changelog |
+| Tickets | Story, bug, task, spike, true and bucket epics, acceptance criteria, ticket lint |
 | Lint check | Go linter sweep, plus the manual self-check as the delivery gate |
 | Self-check | 14-item checklist to run before delivery |
 
@@ -36,7 +37,7 @@ The skill triggers on any documentation writing or editing task.
 
 ## Use as a human reference
 
-Read `SKILL.md` as a style guide. The `references/` files cover commands, templates, document structure, diagrams, and personal voice. Use `references/word-swaps.md` as a lookup table when editing.
+Read `SKILL.md` as a style guide. The `references/` files cover commands, templates, tickets, document structure, diagrams, and personal voice. Use `references/word-swaps.md` as a lookup table when editing.
 
 `SKILL.md` holds only the rules that apply to all writing, so it stays short when an assistant loads it. The assistant reads a reference file only when the task needs it.
 
@@ -77,6 +78,14 @@ Findings do not fail the run:
 
 It skips YAML frontmatter, fenced and indented code blocks, inline code, and HTML.
 
+For a ticket, it also checks required sections per type, title length, empty sections, leftover placeholders, and vague acceptance criteria. These checks run when the file covers three sections of one ticket type. To force them, pass `--ticket` or `--ticket=story|bug|task|spike|epic`:
+
+```bash
+red-pen-lint --ticket=bug ticket.md
+```
+
+See `references/tickets.md` for the rules.
+
 Exit 0 = no violations, findings allowed. Exit 1 = violations found.
 
 For a personal profile README or bio, `--voice personal` keeps the author's voice. It skips the contraction, modal, minimizing-word, semicolon, em-dash, and sentence-length checks:
@@ -97,6 +106,7 @@ references/commands.md        # /red-pen commands, sources, comment safety rules
 references/personal-voice.md  # Keep-my-voice rules for profiles and bios
 references/doc-structure.md   # Reader's path, page scope, examples, method references
 references/templates.md       # README, how-to, reference, checklist, changelog templates
+references/tickets.md         # Story, bug, task, spike, and epic templates and rules
 references/diagrams.md        # Mermaid rules and diagram guidance
 references/word-swaps.md      # Word and phrase replacement tables
 cmd/red-pen-lint/             # Go linter source and tests
