@@ -1,16 +1,35 @@
 name: Release
 
 # Only version tags cut a release. Pushing any other tag publishes nothing.
+# The workflow can also be run by hand from Actions with a bump choice, which
+# creates the tag in the same job; the tag push it makes does not retrigger
+# this workflow, so the job keeps publishing.
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump type (manual run creates the tag)
+        required: false
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
   # Keyless cosign signing exchanges the job's OIDC token for a short-lived
   # certificate. No signing key is stored anywhere.
   id-token: write
+
+# Never interrupt an active publish.
+concurrency:
+  group: stable-release
+  cancel-in-progress: false
 
 jobs:
   goreleaser:
@@ -20,6 +39,45 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+
+      # A tag push releases as that tag. A manual run computes the next stable
+      # tag from the latest existing one, creates and pushes it, and continues
+      # publishing in this same job.
+      - name: Resolve release tag
+        id: tag
+        env:
+          BUMP: ${{ inputs.bump || 'patch' }}
+        run: |
+          set -euo pipefail
+          STABLE='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            LATEST=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -E "$STABLE" | head -1 || true)
+            LATEST="${LATEST:-v0.0.0}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST#v}"
+            case "$BUMP" in
+              major) TAG="v$((MAJOR + 1)).0.0" ;;
+              minor) TAG="v${MAJOR}.$((MINOR + 1)).0" ;;
+              patch) TAG="v${MAJOR}.${MINOR}.$((PATCH + 1))" ;;
+              *) echo "::error::Invalid version bump"; exit 1 ;;
+            esac
+            echo "Releasing $TAG (bump: $BUMP from $LATEST)"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "$TAG"
+            git push origin "refs/tags/$TAG"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          # Pin the release notes to the preceding stable tag. Prereleases do
+          # not count.
+          BASE="${TAG%%-*}"
+          PREV=$(git tag --list 'v[0-9]*' \
+            | grep -E "$STABLE" | grep -vFx "$BASE" \
+            | { cat; echo "$BASE"; } | sort -V \
+            | awk -v t="$BASE" '$0 == t {exit} {p = $0} END {print p}' || true)
+          echo "prev=$PREV" >> "$GITHUB_OUTPUT"
 
       # Matches the toolchain every CI job tests with, so release binaries are
       # built by a toolchain CI has tested.
@@ -46,3 +104,5 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ steps.tag.outputs.tag }}
+          GORELEASER_PREVIOUS_TAG: ${{ steps.tag.outputs.prev }}
