@@ -254,8 +254,10 @@ var version = "dev"
 func main() {
 	voice := flag.String("voice", "docs", "rule set: docs (all rules) or personal (keeps the author's voice)")
 	versionFlag := flag.Bool("version", false, "print the build version and exit")
+	var ticket ticketFlag
+	flag.Var(&ticket, "ticket", "run ticket checks; --ticket=story|bug|task|spike|epic also sets the type (default: auto-detect from headings)")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: red-pen-lint [--voice docs|personal] <file> [file...]\n")
+		fmt.Fprintf(os.Stderr, "Usage: red-pen-lint [--voice docs|personal] [--ticket[=type]] <file> [file...]\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -273,7 +275,7 @@ func main() {
 	var violations, findings []violation
 
 	for _, path := range flag.Args() {
-		vs, err := lintFile(path)
+		vs, err := lintFile(path, ticket.mode)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s: %v\n", path, err)
 			os.Exit(2)
@@ -293,7 +295,16 @@ func main() {
 		fmt.Printf("\n%d finding(s). Findings are suggestions, not failures:\n", len(findings))
 		printList(findings)
 		fmt.Println()
-		fmt.Println("A finding names a word-swap candidate. Keep the word when it names the technical thing here, such as compiler or SQL optimization. Otherwise apply the swap from references/word-swaps.md.")
+		rules := map[string]bool{}
+		for _, f := range findings {
+			rules[f.Rule] = true
+		}
+		if rules["word-swap"] {
+			fmt.Println("A word-swap finding names a verbose word. Keep the word when it names the technical thing here, such as compiler or SQL optimization. Otherwise apply the swap from references/word-swaps.md.")
+		}
+		if rules["ticket-vague"] {
+			fmt.Println("A ticket-vague finding names a word that makes a criterion hard to check. Replace it with the value or behavior a reviewer can verify.")
+		}
 		fmt.Println("To drop a false positive from the report, put <!-- red-pen-ignore-next-line --> on the line above it, or wrap a region in <!-- red-pen-ignore-start --> and <!-- red-pen-ignore-end -->.")
 	}
 
@@ -329,7 +340,7 @@ func filterVoice(violations []violation, voice string) []violation {
 	return kept
 }
 
-func lintFile(path string) ([]violation, error) {
+func lintFile(path, ticketMode string) ([]violation, error) {
 	// #nosec G304 -- opening the file paths the user passes is the entire point
 	// of this tool. os.Root scoping would defeat a multi-file linter.
 	f, err := os.Open(path)
@@ -346,7 +357,11 @@ func lintFile(path string) ([]violation, error) {
 	if err != nil {
 		return nil, err
 	}
-	vs := lintLines(lines)
+	cfg, err := configFor(path)
+	if err != nil {
+		return nil, err
+	}
+	vs := append(lintLines(lines), lintTicket(lines, ticketMode, cfg)...)
 	for i := range vs {
 		vs[i].Path = path
 	}

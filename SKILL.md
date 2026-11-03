@@ -1,14 +1,14 @@
 ---
 name: red-pen
 argument-hint: "[docs | comments | file or link] [--fix]"
-description: Write or rewrite technical documentation and code comments in plain, direct language. Use when writing or editing READMEs, how-to guides, reference docs, runbooks, changelogs, code comments, PR descriptions, commit messages, or personal profile READMEs and bios, or when the user runs /red-pen. Not for chat replies, marketing copy, blog posts, or fiction.
+description: Write or rewrite technical documentation and code comments in plain, direct language. Use when writing or editing READMEs, how-to guides, reference docs, runbooks, changelogs, code comments, PR descriptions, commit messages, tickets (stories, bugs, tasks, spikes, epics), or personal profile READMEs and bios, or when the user runs /red-pen. Not for chat replies, marketing copy, blog posts, or fiction.
 ---
 
 # Red Pen
 
 Write text that a tired reader understands on one read. No filler. No qualifiers. No AI slop. State the fact, show the step, move on.
 
-This skill applies to technical writing: documentation, code comments, PR descriptions, and commit messages. Documentation includes READMEs, how-tos, guides, reference docs, runbooks, and changelogs.
+This skill applies to technical writing: documentation, code comments, PR descriptions, commit messages, and tickets. Documentation includes READMEs, how-tos, guides, reference docs, runbooks, and changelogs.
 
 ## Two modes
 
@@ -46,6 +46,7 @@ This file holds the rules that apply to all writing. Read the matching reference
 | Personal writing: a profile README, bio, or About page | `references/personal-voice.md` |
 | Planning a doc set, or writing examples or method references | `references/doc-structure.md` |
 | Writing a README, how-to, reference doc, checklist, or changelog | `references/templates.md` |
+| Writing or rewriting a story, bug, task, spike, or epic | `references/tickets.md` |
 | Adding or editing a diagram | `references/diagrams.md` |
 | Replacing a word or checking a term | `references/word-swaps.md` |
 
@@ -53,9 +54,13 @@ This file holds the rules that apply to all writing. Read the matching reference
 
 Personal writing includes a GitHub profile README, a bio, an About page, or a personal site intro. For these, ask the user before rewriting: keep their voice, or apply full red-pen. "Keep my voice" keeps contractions, first person, and personality. It still cuts filler, slop, and empty self-promotion. The full rules are in `references/personal-voice.md`.
 
+## Tickets
+
+A ticket is for the person who does the work. It answers what changes, why, and how you know it is done, in one read. State each fact once. Put reference material in links and history in comments. Before writing an epic, ask if it is a true epic or a bucket epic for ad hoc work. The templates and rules are in `references/tickets.md`.
+
 ## Commands
 
-`/red-pen` cleans docs or code comments in a repo, an attached file, or a Notion, Confluence, or Google Docs page. The default is a preview. Nothing is written until the user passes `--fix`. Platform pages also need an explicit yes before the push. The full command reference is in `references/commands.md`.
+`/red-pen` cleans docs or code comments. Sources include a repo, an attached file, a Notion, Confluence, or Google Docs page, and a tracker ticket. The default is a preview. Nothing is written until the user passes `--fix`. Platform pages also need an explicit yes before the push. `/red-pen onboard` records the team's defaults in `.red-pen.yml`, an AGENTS.md or CLAUDE.md section, or both. The full command reference is in `references/commands.md`.
 
 ## Sentence rules
 
@@ -199,6 +204,8 @@ Exit code 0 means no mechanical violations. Exit code 1 means violations. Neithe
 - Whether a step names the real command, file, or value. It only counts words.
 - Tone, structure, and reader fit: is this page for a beginner or an expert, and does it say the right thing first.
 - Anything inside code blocks, inline code, HTML, frontmatter, or ignored regions. That content is skipped on purpose, not judged.
+
+For a ticket, the linter also checks required sections, title length, empty sections, and leftover placeholders. It turns these checks on when the file covers three sections of one ticket type. Pass `--ticket` or `--ticket=<type>` to force them. See `references/tickets.md`.
 
 For personal writing in "Keep my voice" mode, add `--voice personal`. This skips the contraction, modal, minimizing-word, semicolon, em-dash, and sentence-length checks. All other checks still run.
 
