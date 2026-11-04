@@ -129,6 +129,16 @@ func TestLintLines(t *testing.T) {
 			input: "| A | B |\n|---|:---:|\n| x | y |",
 			want:  []string{},
 		},
+		{
+			name:  "section symbol flagged",
+			input: "See §4 for the rules. Also § 4.2 and §A.",
+			want:  []string{"1:section-symbol", "1:section-symbol", "1:section-symbol"},
+		},
+		{
+			name:  "named heading reference is fine",
+			input: "See the Grammar heading for the rules.",
+			want:  []string{},
+		},
 
 		// Words.
 		{

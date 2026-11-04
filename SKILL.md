@@ -115,6 +115,7 @@ These are AI writing fingerprints. Do not use them.
 - No bolded-term-colon-definition pattern. "**Idempotent:** A property where..." is a ChatGPT signature. Use a table, a bullet list, or work the definition into the sentence.
 - No decorative bold. Bold is for UI labels, commands the reader must type, warnings, and shortlist lines in checklists (see the Checklist / Procedure template in `references/templates.md`). Not for emphasis.
 - No emoji as structural elements. No emoji bullets, no emoji headers, no emoji section markers.
+- No section symbols ("§4", "§ 4.2"). Name the heading: "see Grammar", not coordinate lookup.
 - No inflated symbolism. "Serves as a testament to" means nothing. State the fact.
 <!-- red-pen-ignore-end -->
 

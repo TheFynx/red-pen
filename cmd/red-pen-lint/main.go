@@ -37,6 +37,10 @@ var (
 	enDashRange = regexp.MustCompile(`\d\s?\x{2013}\s?\d`)
 	semicolon   = regexp.MustCompile(`;`)
 
+	// Section-number citation: "§4", "§ 4.2", "§A". Readers should name the
+	// heading ("see Grammar"), not play coordinate lookup.
+	sectionSymbol = regexp.MustCompile(`§\s?[0-9A-Za-z][0-9A-Za-z.]*`)
+
 	// **Term:** definition pattern (bolded-term-colon-definition). The colon can
 	// sit inside the bold (**Term:** def) or after it (**Term**: def).
 	boldColonDef = regexp.MustCompile(`\*\*[^*]+(?:\*\*:\s|:\*\*\s)`)
@@ -414,6 +418,18 @@ func lintLines(lines []string) []violation {
 				Message:  "Semicolon found. Write two sentences.",
 				Severity: "violation",
 			})
+		}
+
+		if m := sectionSymbol.FindAllString(line, -1); m != nil {
+			for _, match := range m {
+				violations = append(violations, violation{
+					Line:     lineNum,
+					Rule:     "section-symbol",
+					Match:    match,
+					Message:  fmt.Sprintf("Section symbol \"%s\" found. Name the heading instead, as in \"see Grammar\".", match),
+					Severity: "violation",
+				})
+			}
 		}
 
 		if boldColonDef.MatchString(line) && !isLabelShape(trimmed) {
