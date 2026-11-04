@@ -37,9 +37,11 @@ var (
 	enDashRange = regexp.MustCompile(`\d\s?\x{2013}\s?\d`)
 	semicolon   = regexp.MustCompile(`;`)
 
-	// Section-number citation: "§4", "§ 4.2", "§A". Readers should name the
-	// heading ("see Grammar"), not play coordinate lookup.
-	sectionSymbol = regexp.MustCompile(`§\s?[0-9A-Za-z][0-9A-Za-z.]*`)
+	// Section-number citation: "§4", "§ 4.2", "§A", "see section 4",
+	// "per section 2(b)". Readers should name the heading ("see Grammar"),
+	// not play coordinate lookup. A "Section 4 describes..." sentence start
+	// stays legal: it names a heading rather than citing by number.
+	sectionCitation = regexp.MustCompile(`§\s?[0-9A-Za-z][0-9A-Za-z.]*|(?i)\b(?:see|per|in|under|from|refer\s+to)\s+(?:the\s+)?section\s+\d+(?:\.\d+)*(?:\([a-zA-Z0-9]+\))?`)
 
 	// **Term:** definition pattern (bolded-term-colon-definition). The colon can
 	// sit inside the bold (**Term:** def) or after it (**Term**: def).
@@ -420,13 +422,13 @@ func lintLines(lines []string) []violation {
 			})
 		}
 
-		if m := sectionSymbol.FindAllString(line, -1); m != nil {
+		if m := sectionCitation.FindAllString(line, -1); m != nil {
 			for _, match := range m {
 				violations = append(violations, violation{
 					Line:     lineNum,
-					Rule:     "section-symbol",
+					Rule:     "section-citation",
 					Match:    match,
-					Message:  fmt.Sprintf("Section symbol \"%s\" found. Name the heading instead, as in \"see Grammar\".", match),
+					Message:  fmt.Sprintf("Section citation \"%s\" found. Name the heading instead, as in \"see Grammar\".", match),
 					Severity: "violation",
 				})
 			}
